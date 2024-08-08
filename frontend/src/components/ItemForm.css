@@ -1,0 +1,14 @@
+.product-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .product-row {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .product-field {
+    flex: 1;
+  }

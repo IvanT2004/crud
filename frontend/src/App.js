@@ -38,7 +38,7 @@ const App = () => {
     <Container maxWidth="md">
       <Box mt={4}>
         <Typography variant="h2" gutterBottom>
-          CRUD Application
+          IMPD Cotizaciones
         </Typography>
         <ItemForm selectedItem={selectedItem} onSave={handleSave} />
         <ItemList items={items} onEdit={handleEdit} onDelete={handleDelete} />

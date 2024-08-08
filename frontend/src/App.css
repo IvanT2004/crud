@@ -36,3 +36,16 @@
     transform: rotate(360deg);
   }
 }
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 120px;
+}
+
+
