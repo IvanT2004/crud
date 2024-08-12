@@ -89,14 +89,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
           {selectedItem ? 'Editar' : 'Nueva'}
         </Typography>
         <form onSubmit={handleSubmit}>
-          <TextField
-            label="Asunto"
-            value={asunto}
-            onChange={(e) => setAsunto(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <FormControl fullWidth margin="normal">
+        <FormControl fullWidth margin="normal">
             <InputLabel>Cliente</InputLabel>
             <Select
               value={cliente}
@@ -115,6 +108,13 @@ const ItemForm = ({ selectedItem, onSave }) => {
               margin="normal"
             />
           )}
+          <TextField
+            label="Asunto"
+            value={asunto}
+            onChange={(e) => setAsunto(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
           <div className="product-rows">
             {productos.map((producto, index) => (
               <div className="product-row" key={index}>
@@ -134,19 +134,19 @@ const ItemForm = ({ selectedItem, onSave }) => {
                   label="Cantidad"
                   type="number"
                   value={producto.cantidad}
-                  onChange={(e) => handleProductChange(index, 'cantidad', parseFloat(e.target.value))}
+                  onChange={(e) => handleProductChange(index, 'cantidad', parseInt(e.target.value))}
                   className="product-field"
                 />
                 <TextField
                   label="Valor"
                   type="number"
                   value={producto.valor}
-                  onChange={(e) => handleProductChange(index, 'valor', parseFloat(e.target.value))}
+                  onChange={(e) => handleProductChange(index, 'valor', parseInt(e.target.value))}
                   className="product-field"
                 />
                 <TextField
                   label="Valor Total"
-                  value={producto.total.toFixed(2)}
+                  value={producto.total.toFixed(0)}
                   InputProps={{
                     readOnly: true,
                   }}
@@ -179,7 +179,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
               <Grid item xs={4}>
                 <TextField
                   label="Sub Total"
-                  value={subTotal.toFixed(2)}
+                  value={subTotal.toFixed(0)}
                   InputProps={{
                     readOnly: true,
                   }}
@@ -189,7 +189,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
               <Grid item xs={4}>
                 <TextField
                   label="IVA (19%)"
-                  value={iva.toFixed(2)}
+                  value={iva.toFixed(0)}
                   InputProps={{
                     readOnly: true,
                   }}
@@ -199,7 +199,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
               <Grid item xs={4}>
                 <TextField
                   label="Total"
-                  value={total.toFixed(2)}
+                  value={total.toFixed(0)}
                   InputProps={{
                     readOnly: true,
                   }}
