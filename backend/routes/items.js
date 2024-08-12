@@ -14,17 +14,23 @@ router.get('/', async (req, res) => {
 });
 
 // Crear un item
+// Crear un item
 router.post('/', async (req, res) => {
-  const item = new Item({
-    asunto: req.body.asunto,
-    cliente: req.body.cliente,
-    productos: req.body.productos,
-    subTotal: req.body.subTotal,
-    iva: req.body.iva,
-    total: req.body.total,
-  });
-
   try {
+    // Encuentra el último item para determinar el número siguiente
+    const lastItem = await Item.findOne().sort({ numero: -1 });
+    const newNumero = lastItem ? lastItem.numero + 1 : 1;
+
+    const item = new Item({
+      numero: newNumero, // Asigna el nuevo número
+      asunto: req.body.asunto,
+      cliente: req.body.cliente,
+      productos: req.body.productos,
+      subTotal: req.body.subTotal,
+      iva: req.body.iva,
+      total: req.body.total,
+    });
+
     const newItem = await item.save();
     res.status(201).json(newItem);
   } catch (err) {
@@ -33,6 +39,7 @@ router.post('/', async (req, res) => {
   }
 });
 
+
 // Obtener un item por ID
 router.get('/:id', getItem, (req, res) => {
   res.json(res.item);
@@ -40,6 +47,9 @@ router.get('/:id', getItem, (req, res) => {
 
 // Actualizar un item
 router.put('/:id', getItem, async (req, res) => {
+  if (req.body.numero != null) {
+    res.item.numero = req.body.numero;
+  }
   if (req.body.asunto != null) {
     res.item.asunto = req.body.asunto;
   }
@@ -69,6 +79,7 @@ router.put('/:id', getItem, async (req, res) => {
 });
 
 // Eliminar un item (sin usar el middleware getItem)
+// Eliminar un item (sin usar el middleware getItem)
 router.delete('/:id', async (req, res) => {
   const itemId = req.params.id;
   console.log(`Received request to delete item with id: ${itemId}`);
@@ -80,12 +91,13 @@ router.delete('/:id', async (req, res) => {
     }
     await item.deleteOne();
     console.log(`Deleted item with id: ${itemId}`);
-    res.status(204).json({ message: 'Deleted Item' });
+    res.status(204).end();  // No response body needed for a 204
   } catch (err) {
     console.log(`Error deleting item with id ${itemId}:`, err);
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // Middleware para obtener un item por ID
 async function getItem(req, res, next) {

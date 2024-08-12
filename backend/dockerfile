@@ -1,20 +1,25 @@
-# Usa una imagen oficial de Node.js
-FROM node:16
+# Using a smaller base image
+FROM node:alpine AS build
 
-# Establece el directorio de trabajo
 WORKDIR /app
 
-# Copia el package.json y el package-lock.json
+# Install dependencies
 COPY package*.json ./
-
-# Instala las dependencias
 RUN npm install
 
-# Copia el resto de la aplicación
+# Copy the rest of the code
 COPY . .
 
-# Expone el puerto en el que corre el backend
-EXPOSE 5000
+# Build the application
+RUN npm run build
 
-# Comando para correr la aplicación
+# Production container
+FROM node:alpine AS production
+WORKDIR /app
+
+# Copy build and node_modules from the previous stage
+COPY --from=build /app .
+
+# Expose the port and define CMD
+EXPOSE 3000
 CMD ["npm", "start"]

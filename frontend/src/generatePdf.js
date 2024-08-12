@@ -12,7 +12,7 @@ const generatePdf = (item) => {
   doc.setFontSize(20);
 
   // Formatear el ID
-  const formattedId = `REM-ID${String(item._id).padStart(2, '0')}`;
+  const formattedId = `REM-ID${String(item.numero).padStart(2, '0')}`;
 
   // Añadir información de la cotización
   doc.setFontSize(10);

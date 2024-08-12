@@ -9,6 +9,7 @@ const ProductoSchema = new mongoose.Schema({
 });
 
 const ItemSchema = new mongoose.Schema({
+  numero: { type: Number, required: true },
   asunto: { type: String, required: true },
   cliente: { type: String, required: true },
   productos: [ProductoSchema],

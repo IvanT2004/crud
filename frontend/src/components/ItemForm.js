@@ -134,14 +134,14 @@ const ItemForm = ({ selectedItem, onSave }) => {
                   label="Cantidad"
                   type="number"
                   value={producto.cantidad}
-                  onChange={(e) => handleProductChange(index, 'cantidad', parseInt(e.target.value))}
+                  onChange={(e) => handleProductChange(index, 'cantidad', parseFloat(e.target.value))}
                   className="product-field"
                 />
                 <TextField
                   label="Valor"
                   type="number"
                   value={producto.valor}
-                  onChange={(e) => handleProductChange(index, 'valor', parseInt(e.target.value))}
+                  onChange={(e) => handleProductChange(index, 'valor', parseFloat(e.target.value))}
                   className="product-field"
                 />
                 <TextField

@@ -16,34 +16,36 @@ const ItemList = ({ items, onEdit, onDelete }) => {
 
   const handleDelete = async (id) => {
     if (deleting === id) {
-      return;
+        return; // Evita la eliminación duplicada
     }
-    console.log(`handleDelete called for id: ${id}`);
-    setDeleting(id);
-    try {
-      const url = `/items/${id}`;
-      console.log(`Attempting to delete item with URL: ${url}`);
-      const response = await api.delete(url);
-      if (response.status === 204) {
-        onDelete(id);
-      } else {
-        console.error("Error deleting item:", response.data);
-        alert(`Error al eliminar el item: ${response.data.message}`);
-      }
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.log("Item no encontrado. Es posible que ya haya sido eliminado.");
-        onDelete(id);
-      } else {
-        console.error("There was an error deleting the item:", error);
-        alert(`Error al eliminar el item: ${error.message}`);
-      }
-    } finally {
-      setDeleting(null);
-      console.log(`Deletion process completed for id: ${id}`);
-    }
-  };
+    setDeleting(id); // Marca el ítem como "en proceso de eliminación"
 
+    try {
+        const response = await api.delete(`/items/${id}`);
+        if (response.status === 204) {
+            onDelete(id);  // Actualiza el estado para eliminar el ítem del frontend
+        } else {
+            console.error("Error deleting item:", response.data);
+            alert(`Error al eliminar el item: ${response.data.message}`);
+        }
+    } catch (error) {
+        if (error.response && error.response.status === 404) {
+            console.log("Item no encontrado. Es posible que ya haya sido eliminado.");
+            onDelete(id);  // Considera el ítem eliminado si ya no se encuentra
+        } else {
+            console.error("There was an error deleting the item:", error);
+            alert(`Error al eliminar el item: ${error.message}`);
+        }
+    } finally {
+        setTimeout(() => {
+            setDeleting(null); // Desbloquea el botón de eliminación después de un pequeño retraso
+        }, 500); // Retraso de 500ms para asegurarse de que no se realicen solicitudes duplicadas
+    }
+};
+
+
+
+  
   const handleGeneratePdf = (item, index) => {
     console.log('Generando PDF para:', item);
     generatePdf(item);
