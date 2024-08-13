@@ -35,10 +35,19 @@ const ItemForm = ({ selectedItem, onSave }) => {
     }
   }, [selectedItem]);
 
+  const formatNumberInput = (value) => {
+    return new Intl.NumberFormat('es-CO').format(value);
+  };
+
+  const parseFormattedNumber = (value) => {
+    return Number(value.replace(/\./g, ''));
+  };
+
   const handleProductChange = (index, field, value) => {
+    const formattedValue = field === 'cantidad' || field === 'valor' ? parseFormattedNumber(value) : value;
     const newProductos = productos.map((producto, i) => {
       if (i === index) {
-        const updatedProducto = { ...producto, [field]: value };
+        const updatedProducto = { ...producto, [field]: formattedValue };
         if (field === 'cantidad' || field === 'valor') {
           updatedProducto.total = parseFloat(updatedProducto.cantidad || 0) * parseFloat(updatedProducto.valor || 0);
         }
@@ -89,7 +98,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
           {selectedItem ? 'Editar' : 'Nueva'}
         </Typography>
         <form onSubmit={handleSubmit}>
-        <FormControl fullWidth margin="normal">
+          <FormControl fullWidth margin="normal">
             <InputLabel>Cliente</InputLabel>
             <Select
               value={cliente}
@@ -132,21 +141,21 @@ const ItemForm = ({ selectedItem, onSave }) => {
                 />
                 <TextField
                   label="Cantidad"
-                  type="number"
-                  value={producto.cantidad}
-                  onChange={(e) => handleProductChange(index, 'cantidad', parseFloat(e.target.value))}
+                  type="text"
+                  value={formatNumberInput(producto.cantidad)}
+                  onChange={(e) => handleProductChange(index, 'cantidad', e.target.value)}
                   className="product-field"
                 />
                 <TextField
                   label="Valor"
-                  type="number"
-                  value={producto.valor}
-                  onChange={(e) => handleProductChange(index, 'valor', parseFloat(e.target.value))}
+                  type="text"
+                  value={formatNumberInput(producto.valor)}
+                  onChange={(e) => handleProductChange(index, 'valor', e.target.value)}
                   className="product-field"
                 />
                 <TextField
                   label="Valor Total"
-                  value={producto.total.toFixed(0)}
+                  value={formatNumberInput(producto.total.toFixed(0))}
                   InputProps={{
                     readOnly: true,
                   }}
@@ -179,7 +188,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
               <Grid item xs={4}>
                 <TextField
                   label="Sub Total"
-                  value={subTotal.toFixed(0)}
+                  value={formatNumberInput(subTotal.toFixed(0))}
                   InputProps={{
                     readOnly: true,
                   }}
@@ -189,7 +198,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
               <Grid item xs={4}>
                 <TextField
                   label="IVA (19%)"
-                  value={iva.toFixed(0)}
+                  value={formatNumberInput(iva.toFixed(0))}
                   InputProps={{
                     readOnly: true,
                   }}
@@ -199,7 +208,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
               <Grid item xs={4}>
                 <TextField
                   label="Total"
-                  value={total.toFixed(0)}
+                  value={formatNumberInput(total.toFixed(0))}
                   InputProps={{
                     readOnly: true,
                   }}

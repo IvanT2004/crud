@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Typography, Container, Box } from '@mui/material';
+import { List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Typography, Container, Box, Grid } from '@mui/material';
 import { Edit, Delete, PictureAsPdf } from '@mui/icons-material';
 import generatePdf from '../generatePdf';
 import api from '../api';
@@ -41,12 +41,9 @@ const ItemList = ({ items, onEdit, onDelete }) => {
             setDeleting(null); // Desbloquea el botón de eliminación después de un pequeño retraso
         }, 500); // Retraso de 500ms para asegurarse de que no se realicen solicitudes duplicadas
     }
-};
+  };
 
-
-
-  
-  const handleGeneratePdf = (item, index) => {
+  const handleGeneratePdf = (item) => {
     console.log('Generando PDF para:', item);
     generatePdf(item);
   };
@@ -58,27 +55,36 @@ const ItemList = ({ items, onEdit, onDelete }) => {
           Cotizaciones
         </Typography>
         <List>
-          {items.map((item, index) => (
+          {items.map((item) => (
             <ListItem key={item._id} divider>
-              <ListItemText
-                primary={item.asunto}
-              />
-              <ListItemSecondaryAction>
-                <IconButton edge="end" aria-label="edit" onClick={() => onEdit(item)}>
-                  <Edit />
-                </IconButton>
-                <IconButton 
-                  edge="end" 
-                  aria-label="delete" 
-                  onClick={() => handleDelete(item._id)} 
-                  disabled={deleting === item._id}
-                >
-                  <Delete />
-                </IconButton>
-                <IconButton edge="end" aria-label="generate-pdf" onClick={() => handleGeneratePdf(item, index)}>
-                  <PictureAsPdf />
-                </IconButton>
-              </ListItemSecondaryAction>
+              <Grid container spacing={2}>
+                <Grid item xs={3}>
+                  <Typography variant="body1">
+                    {`REM-ID${String(item.numero).padStart(2, '0')}`}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <ListItemText primary={item.asunto} />
+                </Grid>
+                <Grid item xs={3}>
+                  <ListItemSecondaryAction>
+                    <IconButton edge="end" aria-label="edit" onClick={() => onEdit(item)}>
+                      <Edit />
+                    </IconButton>
+                    <IconButton 
+                      edge="end" 
+                      aria-label="delete" 
+                      onClick={() => handleDelete(item._id)} 
+                      disabled={deleting === item._id}
+                    >
+                      <Delete />
+                    </IconButton>
+                    <IconButton edge="end" aria-label="generate-pdf" onClick={() => handleGeneratePdf(item)}>
+                      <PictureAsPdf />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </Grid>
+              </Grid>
             </ListItem>
           ))}
         </List>

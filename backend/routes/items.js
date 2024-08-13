@@ -5,7 +5,7 @@ const Item = require('../models/Item');
 // Obtener todos los items
 router.get('/', async (req, res) => {
   try {
-    const items = await Item.find();
+    const items = await Item.find({ activo: true }); // Solo obtener los items activos
     res.json(items);
   } catch (err) {
     console.error('Error getting items:', err);
@@ -79,25 +79,24 @@ router.put('/:id', getItem, async (req, res) => {
 });
 
 // Eliminar un item (sin usar el middleware getItem)
-// Eliminar un item (sin usar el middleware getItem)
 router.delete('/:id', async (req, res) => {
   const itemId = req.params.id;
-  console.log(`Received request to delete item with id: ${itemId}`);
+  console.log(`Received request to deactivate item with id: ${itemId}`);
   try {
     const item = await Item.findById(itemId);
     if (item == null) {
       console.log(`Item with id ${itemId} not found`);
       return res.status(404).json({ message: 'Cannot find item' });
     }
-    await item.deleteOne();
-    console.log(`Deleted item with id: ${itemId}`);
+    item.activo = false; // En lugar de eliminar, desactivamos el registro
+    await item.save();
+    console.log(`Deactivated item with id: ${itemId}`);
     res.status(204).end();  // No response body needed for a 204
   } catch (err) {
-    console.log(`Error deleting item with id ${itemId}:`, err);
+    console.log(`Error deactivating item with id ${itemId}:`, err);
     res.status(500).json({ message: err.message });
   }
 });
-
 
 // Middleware para obtener un item por ID
 async function getItem(req, res, next) {

@@ -8,6 +8,7 @@ services:
       - ./backend:/app
     environment:
       NODE_ENV: development
+      MONGO_URI: mongodb://mongo:27017/tu_base_de_datos  # Agrega esta línea para la conexión a MongoDB
     depends_on:
       - mongo
 

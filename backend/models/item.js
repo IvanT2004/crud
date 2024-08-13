@@ -16,6 +16,7 @@ const ItemSchema = new mongoose.Schema({
   subTotal: { type: Number, required: true },
   iva: { type: Number, required: true },
   total: { type: Number, required: true },
+  activo: { type: Boolean, default: true } // Nuevo campo para manejar la activación/desactivación
 });
 
 module.exports = mongoose.model('Item', ItemSchema);
