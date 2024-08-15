@@ -33,7 +33,7 @@ const generatePdf = (item) => {
   doc.setFontSize(20);
 
   // Formatear el ID
-  const formattedId = `REM-ID${String(item.numero).padStart(2, '0')}`;
+  const formattedId = `REM-ID${String(item.numero).padStart(2, '00')}`;
 
   // Añadir información de la cotización
   doc.setFontSize(11.5);
@@ -55,12 +55,12 @@ const generatePdf = (item) => {
 
   // Añadir tabla de productos
   const productos = item.productos.map(p => [
-    p.codigo,
+    p.codigo || '', // Asegúrate de que se incluya un valor vacío si no hay código
     p.descripcion,
     p.cantidad,
     formatCurrency(p.valor),
     formatCurrency(p.total)
-  ]);
+]);
 
   let startY = 80;
 
@@ -136,8 +136,36 @@ const generatePdf = (item) => {
     ['Total:', total],
   ];
 
+  // Añadir título de observaciones
+  const observationsTitleY = doc.internal.pageSize.getHeight() - 72; // Ajusta la posición del título de observaciones
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Observaciones:', 14, observationsTitleY);
+
   const summaryYPosition = doc.internal.pageSize.getHeight() - 69; // Ajusta la posición de la tabla de resumen
 
+  // Crear la tabla de observaciones
+  const observationsTableData = [
+    [item.observaciones || '']
+  ];
+
+  // Añadir la tabla de observaciones
+  doc.autoTable({
+    startY: summaryYPosition,
+    body: observationsTableData,
+    theme: 'grid',
+    styles: {
+      fontSize: 10,
+      halign: 'left',
+      cellPadding: 1,
+    },
+    margin: { left: 14, right: 104 }, // Ajusta los márgenes para dar espacio horizontal
+    tableWidth: 100, // Ajusta el ancho de la tabla de observaciones
+    tableLineColor: [0, 0, 0],
+    tableLineWidth: 0.1,
+  });
+
+  // Añadir la tabla de resumen
   doc.autoTable({
     startY: summaryYPosition,
     body: summaryTableData,
@@ -151,7 +179,7 @@ const generatePdf = (item) => {
       0: { halign: 'left', fontStyle: 'bold', fillColor: [240, 240, 240] }, // Alínea a la izquierda, en negrita y fondo gris claro
       1: { halign: 'right' }, // Alínea a la derecha
     },
-    margin: { right: 14, left: 100, top: 10, bottom: 10 }, // Ajusta los márgenes para que se ajuste al espacio
+    margin: { left: 116, right: 14 }, // Ajusta los márgenes para dar espacio horizontal
     tableLineColor: [0, 0, 0],
     tableLineWidth: 0.1,
   });

@@ -1,28 +1,23 @@
-version: '2'
+version: '3'
 services:
   backend:
     build: ./backend
     ports:
       - "5000:5000"
-    volumes:
-      - ./backend:/app
-    environment:
-      NODE_ENV: development
-      MONGO_URI: mongodb://mongo:27017/tu_base_de_datos  # Agrega esta línea para la conexión a MongoDB
     depends_on:
       - mongo
+    environment:
+      - NODE_ENV=production
 
   frontend:
     build: ./frontend
     ports:
       - "3000:80"
-    volumes:
-      - ./frontend:/app
     environment:
-      NODE_ENV: development
+      - NODE_ENV=production
 
   mongo:
-    image: mongo:4.4
+    image: mongo:latest
     ports:
       - "27017:27017"
     volumes:

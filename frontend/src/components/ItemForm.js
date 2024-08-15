@@ -11,6 +11,7 @@ const ItemForm = ({ selectedItem, onSave }) => {
   const [productos, setProductos] = useState([{ codigo: '', descripcion: '', cantidad: 0, valor: 0, total: 0 }]);
   const [numRows, setNumRows] = useState(1);
   const [subTotal, setSubTotal] = useState(0);
+  const [observaciones, setObservaciones] = useState('');
   const [iva, setIva] = useState(0);
   const [total, setTotal] = useState(0);
 
@@ -24,17 +25,18 @@ const ItemForm = ({ selectedItem, onSave }) => {
         total: parseFloat(p.cantidad) * parseFloat(p.valor)
       }));
       setProductos(productosActualizados);
+      setObservaciones(selectedItem.observaciones || ''); // Cargar observaciones
       calcularTotales(productosActualizados);
     } else {
       setAsunto('');
       setCliente('ETIB');
       setProductos([{ codigo: '', descripcion: '', cantidad: 0, valor: 0, total: 0 }]);
+      setObservaciones(''); // Inicializar observaciones
       setSubTotal(0);
       setIva(0);
       setTotal(0);
     }
   }, [selectedItem]);
-
   const formatNumberInput = (value) => {
     return new Intl.NumberFormat('es-CO').format(value);
   };
@@ -74,22 +76,44 @@ const ItemForm = ({ selectedItem, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const item = {
-      asunto,
-      cliente: cliente === 'Otros' ? otrosCliente : cliente,
-      productos,
-      subTotal,
-      iva,
-      total
-    };
-    let savedItem;
-    if (selectedItem) {
-      savedItem = await api.put(`/items/${selectedItem._id}`, item);
-    } else {
-      savedItem = await api.post('/items', item);
+
+    // Validación básica antes de enviar
+    if (!asunto.trim()) {
+        alert("El campo Asunto es obligatorio");
+        return;
     }
-    onSave(savedItem.data);
-  };
+
+    if (productos.some(producto => !producto.descripcion.trim())) {
+        alert("Todos los productos deben tener una descripción");
+        return;
+    }
+
+    const item = {
+        asunto,
+        cliente: cliente === 'Otros' ? otrosCliente : cliente,
+        productos, // Usar todos los productos sin filtrar
+        subTotal,
+        iva,
+        total,
+        observaciones
+    };
+
+    try {
+        let savedItem;
+        if (selectedItem) {
+            savedItem = await api.put(`/items/${selectedItem._id}`, item);
+        } else {
+            savedItem = await api.post('/items', item);
+        }
+        onSave(savedItem.data);
+    } catch (error) {
+        console.error("Error al crear o actualizar el item:", error);
+        alert("Hubo un error al crear o actualizar el item. Por favor, revisa los datos e inténtalo de nuevo.");
+    }
+};
+
+
+
 
   return (
     <Container maxWidth="md">
@@ -182,6 +206,14 @@ const ItemForm = ({ selectedItem, onSave }) => {
               Añadir más filas
             </Button>
           </Box>
+          <TextField
+            label="Observaciones"
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            fullWidth
+            margin="normal"
+            multiline
+          />
           <Box mt={2} component={Paper} p={2}>
             <Typography variant="h6">Resumen</Typography>
             <Grid container spacing={2}>

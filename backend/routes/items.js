@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Item = require('../models/Item');
+const Item = require('../models/item');
 
 // Obtener todos los items
 router.get('/', async (req, res) => {
@@ -14,21 +14,20 @@ router.get('/', async (req, res) => {
 });
 
 // Crear un item
-// Crear un item
 router.post('/', async (req, res) => {
   try {
-    // Encuentra el último item para determinar el número siguiente
     const lastItem = await Item.findOne().sort({ numero: -1 });
     const newNumero = lastItem ? lastItem.numero + 1 : 1;
 
     const item = new Item({
-      numero: newNumero, // Asigna el nuevo número
+      numero: newNumero,
       asunto: req.body.asunto,
       cliente: req.body.cliente,
       productos: req.body.productos,
       subTotal: req.body.subTotal,
       iva: req.body.iva,
       total: req.body.total,
+      observaciones: req.body.observaciones // Añadir observaciones
     });
 
     const newItem = await item.save();
@@ -67,6 +66,9 @@ router.put('/:id', getItem, async (req, res) => {
   }
   if (req.body.total != null) {
     res.item.total = req.body.total;
+  }
+  if (req.body.observaciones != null) { // Actualizar observaciones
+    res.item.observaciones = req.body.observaciones;
   }
 
   try {
