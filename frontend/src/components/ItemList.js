@@ -60,7 +60,7 @@ const ItemList = ({ items, onEdit, onDelete }) => {
               <Grid container spacing={2}>
                 <Grid item xs={3}>
                   <Typography variant="body1">
-                    {`REM-ID${String(item.numero).padStart(2, '0')}`}
+                    {`REM-ID${String(item.numero).padStart(4, '0')}`}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
