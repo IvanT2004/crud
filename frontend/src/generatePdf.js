@@ -66,39 +66,39 @@ const generatePdf = (item) => {
 
   if (productos.length <= 20) {
     doc.autoTable({
-      head: [['Código', 'Descripción', 'Cantidad', 'Valor Unitario', 'Total']],
+      head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
       body: productos,
       startY: startY,
       styles: {
         halign: 'center', // Alinea los valores a la derecha
       },
       columnStyles: {
-        0: { halign: 'left' },  // Código a la izquierda
-        1: { halign: 'left' },  // Descripción a la izquierda
-        2: { halign: 'center' }, // Cantidad centrada
-        3: { halign: 'right' }, // Valor Unitario a la derecha
-        4: { halign: 'right' }  // Total a la derecha
+        0: { halign: 'left', cellWidth: 25 },  // Código a la izquierda, ajustar ancho
+        1: { halign: 'left', cellWidth: 85 },  // Descripción a la izquierda, ajustar ancho
+        2: { halign: 'center', cellWidth: 10 }, // Cantidad centrada, ajustar ancho
+        3: { halign: 'right', cellWidth: 30 }, // Valor Unitario a la derecha, ajustar ancho
+        4: { halign: 'right', cellWidth: 30 }  // Total a la derecha, ajustar ancho
       },
       margin: { bottom: 40 }, // Reservar espacio para el footer
     });
-  } else {
+} else {
     const firstPageProducts = productos.slice(0, 20);
     const nextPageProducts = productos.slice(20);
 
     // Primera página con 20 productos
     doc.autoTable({
-      head: [['Código', 'Descripción', 'Cantidad', 'Valor Unitario', 'Total']],
+      head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
       body: firstPageProducts,
       startY: startY,
       styles: {
         halign: 'center', // Alinea los valores a la derecha
       },
       columnStyles: {
-        0: { halign: 'left' },  // Código a la izquierda
-        1: { halign: 'left' },  // Descripción a la izquierda
-        2: { halign: 'center' }, // Cantidad centrada
-        3: { halign: 'right' }, // Valor Unitario a la derecha
-        4: { halign: 'right' }  // Total a la derecha
+        0: { halign: 'left', cellWidth: 25 },  // Código a la izquierda, ajustar ancho
+        1: { halign: 'left', cellWidth: 85},  // Descripción a la izquierda, ajustar ancho
+        2: { halign: 'center', cellWidth: 10 }, // Cantidad centrada, ajustar ancho
+        3: { halign: 'right', cellWidth: 30 }, // Valor Unitario a la derecha, ajustar ancho
+        4: { halign: 'right', cellWidth: 30 }  // Total a la derecha, ajustar ancho
       },
       margin: { bottom: 40 }, // Reservar espacio para el footer
     });
@@ -107,22 +107,22 @@ const generatePdf = (item) => {
 
     // Segunda página con los productos restantes
     doc.autoTable({
-      head: [['Código', 'Descripción', 'Cantidad', 'Valor Unitario', 'Total']],
+      head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
       body: nextPageProducts,
       startY: 20,
       styles: {
         halign: 'center', // Alinea los valores a la derecha
       },
       columnStyles: {
-        0: { halign: 'left' },  // Código a la izquierda
-        1: { halign: 'left' },  // Descripción a la izquierda
-        2: { halign: 'center' }, // Cantidad centrada
-        3: { halign: 'right' }, // Valor Unitario a la derecha
-        4: { halign: 'right' }  // Total a la derecha
+        0: { halign: 'left', cellWidth: 25 },  // Código a la izquierda, ajustar ancho
+        1: { halign: 'left', cellWidth: 85 },  // Descripción a la izquierda, ajustar ancho
+        2: { halign: 'center', cellWidth: 10 }, // Cantidad centrada, ajustar ancho
+        3: { halign: 'right', cellWidth: 30 }, // Valor Unitario a la derecha, ajustar ancho
+        4: { halign: 'right', cellWidth: 30 }  // Total a la derecha, ajustar ancho
       },
       margin: { bottom: 40 }, // Reservar espacio para el footer
     });
-  }
+}
 
   // Asegurarse de que los valores no sean undefined antes de aplicar el formato
   const subTotal = item.subTotal !== undefined ? formatCurrency(item.subTotal) : '$0';

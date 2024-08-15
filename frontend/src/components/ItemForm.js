@@ -76,28 +76,31 @@ const ItemForm = ({ selectedItem, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     // Validación básica antes de enviar
     if (!asunto.trim()) {
         alert("El campo Asunto es obligatorio");
         return;
     }
-
-    if (productos.some(producto => !producto.descripcion.trim())) {
-        alert("Todos los productos deben tener una descripción");
+  
+    // Filtrar los productos para incluir solo aquellos que tienen una descripción
+    const filteredProductos = productos.filter(producto => producto.descripcion.trim());
+  
+    if (filteredProductos.length === 0) {
+        alert("Debe haber al menos un producto con una descripción válida.");
         return;
     }
-
+  
     const item = {
         asunto,
         cliente: cliente === 'Otros' ? otrosCliente : cliente,
-        productos, // Usar todos los productos sin filtrar
+        productos: filteredProductos, // Usar solo los productos filtrados
         subTotal,
         iva,
         total,
         observaciones
     };
-
+  
     try {
         let savedItem;
         if (selectedItem) {
@@ -110,11 +113,8 @@ const ItemForm = ({ selectedItem, onSave }) => {
         console.error("Error al crear o actualizar el item:", error);
         alert("Hubo un error al crear o actualizar el item. Por favor, revisa los datos e inténtalo de nuevo.");
     }
-};
-
-
-
-
+  };
+  
   return (
     <Container maxWidth="md">
       <Box mt={4}>
