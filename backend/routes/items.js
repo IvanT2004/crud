@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Item = require('../models/item');
+const auth = require('../middleware/auth'); // Importación del middleware auth
 
-// Obtener todos los items
-router.get('/', async (req, res) => {
+// Obtener todos los items (ruta protegida)
+router.get('/', auth, async (req, res) => {
   try {
     const items = await Item.find({ activo: true }); // Solo obtener los items activos
     res.json(items);
@@ -13,8 +14,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Crear un item
-router.post('/', async (req, res) => {
+// Crear un item (ruta protegida)
+router.post('/', auth, async (req, res) => {
   try {
     const lastItem = await Item.findOne().sort({ numero: -1 });
     const newNumero = lastItem ? lastItem.numero + 1 : 1;
@@ -38,14 +39,13 @@ router.post('/', async (req, res) => {
   }
 });
 
-
-// Obtener un item por ID
-router.get('/:id', getItem, (req, res) => {
+// Obtener un item por ID (ruta protegida)
+router.get('/:id', auth, getItem, (req, res) => {
   res.json(res.item);
 });
 
-// Actualizar un item
-router.put('/:id', getItem, async (req, res) => {
+// Actualizar un item (ruta protegida)
+router.put('/:id', auth, getItem, async (req, res) => {
   if (req.body.numero != null) {
     res.item.numero = req.body.numero;
   }
@@ -80,8 +80,8 @@ router.put('/:id', getItem, async (req, res) => {
   }
 });
 
-// Eliminar un item (sin usar el middleware getItem)
-router.delete('/:id', async (req, res) => {
+// Eliminar un item (ruta protegida)
+router.delete('/:id', auth, async (req, res) => {
   const itemId = req.params.id;
   console.log(`Received request to deactivate item with id: ${itemId}`);
   try {
