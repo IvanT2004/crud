@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
-import { TextField, Button, Container, Box, Typography } from '@mui/material';
+import { TextField, Button, Container, Box, Typography, Link } from '@mui/material';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import api from '../api';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Sending data:', { email, password }); // Verificar los datos enviados
     try {
       const response = await api.post('/auth/login', { email, password });
       const token = response.data.token;
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       onLogin();
+      navigate('/'); // Redirigir al formulario de cotizaciones después del login
     } catch (error) {
-      console.error('Error response:', error.response); // Mostrar el error completo
       setError('Invalid credentials. Please try again.');
     }
   };
-  
 
   return (
     <Container maxWidth="xs">

@@ -1,3 +1,4 @@
+/*
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -28,9 +29,8 @@ app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
+*/
 
-
-/*
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -56,9 +56,11 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 const itemsRouter = require('./routes/items');
+const authRouter = require('./routes/auth');
+
 app.use('/items', itemsRouter);
+app.use('/auth', authRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-*/

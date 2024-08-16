@@ -9,7 +9,9 @@ const router = express.Router();
 router.post('/register', [
   check('name', 'El nombre es requerido').not().isEmpty(),
   check('email', 'Por favor ingresa un email válido').isEmail(),
-  check('password', 'El password debe ser de al menos 6 caracteres').isLength({ min: 6 })
+  check('password', 'El password debe tener al menos 8 caracteres, incluyendo una mayúscula, un número y un símbolo.')
+    .isLength({ min: 8 })
+    .matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).+$/)
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -35,7 +37,7 @@ router.post('/register', [
     console.error(err.message);
     res.status(500).send('Server error');
   }
-});
+}); 
 
 // Login de usuario
 router.post('/login', [

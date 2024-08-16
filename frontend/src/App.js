@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ItemList from './components/ItemList';
 import ItemForm from './components/ItemForm';
 import Login from './components/Login';
-import { Container, Box, Typography } from '@mui/material';
+import Register from './components/register';
+import { Container, Box, Typography, Button } from '@mui/material';
 import api from './api';
 
 const App = () => {
@@ -50,20 +52,39 @@ const App = () => {
     setIsAuthenticated(true);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    api.defaults.headers.common['Authorization'] = null;
+    setIsAuthenticated(false);
+  };
+
   return (
-    <Container maxWidth="md">
-      {isAuthenticated ? (
-        <Box mt={4}>
-          <Typography variant="h2" gutterBottom>
-            IMPD Cotizaciones
-          </Typography>
-          <ItemForm selectedItem={selectedItem} onSave={handleSave} />
-          <ItemList items={items} onEdit={handleEdit} onDelete={handleDelete} />
-        </Box>
-      ) : (
-        <Login onLogin={handleLogin} />
-      )}
-    </Container>
+    <Router>
+      <Container maxWidth="md">
+        <Routes>
+          <Route 
+            path="/" 
+            element={isAuthenticated ? (
+              <Box mt={4}>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography variant="h2" gutterBottom>
+                    IMPD Cotizaciones
+                  </Typography>
+                  <Button variant="contained" color="secondary" onClick={handleLogout}>
+                    Cerrar sesión
+                  </Button>
+                </Box>
+                <ItemForm selectedItem={selectedItem} onSave={handleSave} />
+                <ItemList items={items} onEdit={handleEdit} onDelete={handleDelete} />
+              </Box>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )}
+          />
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        </Routes>
+      </Container>
+    </Router>
   );
 };
 

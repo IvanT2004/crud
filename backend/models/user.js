@@ -21,9 +21,6 @@ UserSchema.methods.comparePassword = async function(password) {
   }
 };
 
-
-
-/*
 // Método para cifrar la contraseña antes de guardar
 UserSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
@@ -36,6 +33,4 @@ UserSchema.pre('save', async function (next) {
   next();
 });
 
-
-*/
 module.exports = mongoose.model('User', UserSchema);
