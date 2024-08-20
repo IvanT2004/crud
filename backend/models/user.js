@@ -9,11 +9,8 @@ const UserSchema = new mongoose.Schema({
 
 // Método para comparar la contraseña cifrada
 UserSchema.methods.comparePassword = async function(password) {
-  console.log('Password from request:', password);
-  console.log('Hashed password in DB:', this.password);
   try {
     const isMatch = await bcrypt.compare(password, this.password);
-    console.log('Is match:', isMatch);
     return isMatch;
   } catch (err) {
     console.error('Error comparing passwords:', err);

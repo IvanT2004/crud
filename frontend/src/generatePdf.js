@@ -64,7 +64,7 @@ const generatePdf = (item) => {
 
   let startY = 80;
 
-  if (productos.length <= 20) {
+  if (productos.length <19 ) {
     doc.autoTable({
       head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
       body: productos,
@@ -85,7 +85,6 @@ const generatePdf = (item) => {
     const firstPageProducts = productos.slice(0, 20);
     const nextPageProducts = productos.slice(20);
 
-    // Primera página con 20 productos
     doc.autoTable({
       head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
       body: firstPageProducts,

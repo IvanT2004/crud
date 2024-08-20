@@ -6,7 +6,7 @@ services:
       - mongo
     environment:
       - NODE_ENV=production
-    networks:  # Asegúrate de que backend esté en la red
+    networks:
       - app-network
 
   frontend:

@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ItemList from './components/ItemList';
 import ItemForm from './components/ItemForm';
 import Login from './components/Login';
-import Register from './components/register';
+//import Register from './components/register';
 import { Container, Box, Typography, Button } from '@mui/material';
 import api from './api';
 
@@ -82,7 +82,6 @@ const App = () => {
             )}
           />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/register" element={<Register />} />
         </Routes>
       </Container>
     </Router>
