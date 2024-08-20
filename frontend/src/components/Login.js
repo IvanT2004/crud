@@ -56,7 +56,6 @@ const Login = ({ onLogin }) => {
         </form>
         <Box mt={2} textAlign="center">
           <Link component={RouterLink} to="/register" variant="body2">
-            ¿No tienes cuenta? Regístrate
           </Link>
         </Box>
       </Box>

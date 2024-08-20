@@ -82,7 +82,6 @@ const App = () => {
             )}
           />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/register" element={<Register />} />
         </Routes>
       </Container>
     </Router>
