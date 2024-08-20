@@ -2,12 +2,12 @@ version: '3'
 services:
   backend:
     build: ./backend
-    ports:
-      - "5000:5000"
     depends_on:
       - mongo
     environment:
       - NODE_ENV=production
+    networks:  # Asegúrate de que backend esté en la red
+      - app-network
 
   frontend:
     build: ./frontend
@@ -15,11 +15,22 @@ services:
       - "3000:80"
     environment:
       - NODE_ENV=production
+    networks:
+      - app-network
 
   mongo:
     image: mongo:latest
     volumes:
       - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    networks:
+      - app-network
 
 volumes:
   mongo-data:
+
+networks:
+  app-network:
+    driver: bridge

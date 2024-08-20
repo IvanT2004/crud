@@ -5,7 +5,7 @@ const path = require('path'); // Importa path para manejar las rutas
 const app = express();
 const port = 5000;
 
-const mongoUri = process.env.MONGO_URI || "mongodb://mongo:27017/crud";
+const mongoUri = process.env.MONGO_URI || "mongodb://nuevoAdmin:contraseñaSegura@mongo:27017/crud?authSource=admin";
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -27,12 +27,12 @@ app.use('/items', itemsRouter);
 app.use('/auth', authRouter);
 
 // Servir los archivos estáticos del frontend de React
-app.use(express.static(path.join(__dirname, 'build')));
+// app.use(express.static(path.join(__dirname, 'build')));
 
 // Redirigir todas las demás rutas a index.html para que React Router maneje el enrutamiento
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// });
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
