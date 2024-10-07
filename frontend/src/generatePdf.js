@@ -13,16 +13,15 @@ const generatePdf = (item) => {
 
   // Ancho de la página y del logo
   const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const logoWidth = 100; // Ajusta el tamaño del logo aquí
-  const logoHeight = 40; // Ajusta el tamaño del logo aquí
-  const logoXPosition = (pageWidth - logoWidth) / 2; // Centrando el logo
+  const logoWidth = 100;
+  const logoHeight = 40;
+  const logoXPosition = (pageWidth - logoWidth) / 2;
 
   // Añadir logo centrado
-  doc.addImage(logo, 'PNG', logoXPosition, 10, logoWidth, logoHeight);
+  doc.addImage(logo, 'JPEG', logoXPosition, 10, logoWidth, logoHeight, undefined, 'FAST');
 
   // Añadir información de contacto centrada debajo del logo
-  const contactInfoY = 45; // Ajusta la posición vertical según sea necesario
+  const contactInfoY = 45;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.text('317 3721239 / 311 5611150', pageWidth / 2, contactInfoY, { align: 'center' });
@@ -32,7 +31,7 @@ const generatePdf = (item) => {
   // Añadir título
   doc.setFontSize(20);
 
-  // Formatear el ID con 4 dígitos, si se necesita más, cambia el número en padStart
+  // Formatear el ID con 4 dígitos
   const formattedId = `REM-ID${String(item.numero).padStart(4, '0')}`;
 
   // Añadir información de la cotización
@@ -40,8 +39,8 @@ const generatePdf = (item) => {
   doc.setFont('helvetica', 'bold');
   doc.text(`N°. ${formattedId}`, 170, 56);
   doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 63);
-  doc.text(`Cotización: ${item.asunto}`, 14, 69); // Agrega el asunto aquí
-  doc.text(`Cliente: ${item.cliente}`, 14, 76); // Muestra el cliente aquí
+  doc.text(`Cotización: ${item.asunto}`, 14, 69);
+  doc.text(`Cliente: ${item.cliente}`, 14, 76);
 
   // Función para formatear los números con separadores de miles y símbolo de pesos
   const formatCurrency = (value, decimals = 0) => {
@@ -55,73 +54,52 @@ const generatePdf = (item) => {
 
   // Añadir tabla de productos
   const productos = item.productos.map(p => [
-    p.codigo || '', // Asegúrate de que se incluya un valor vacío si no hay código
+    p.codigo || '',
     p.descripcion,
     p.cantidad,
     formatCurrency(p.valor),
     formatCurrency(p.total)
-]);
+  ]);
 
   let startY = 80;
+  const itemsPerPageFirst = 20; // Ajuste para primera página
+  const itemsPerPageNext = 25;  // Ajuste para páginas siguientes
+  let remainingProducts = productos;
 
-  if (productos.length <19 ) {
+  // Función para añadir una página con productos
+  const addPageWithProducts = (productsToDisplay, isFirstPage = false) => {
     doc.autoTable({
       head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
-      body: productos,
-      startY: startY,
+      body: productsToDisplay,
+      startY: isFirstPage ? startY : 10, // En la primera página comenzamos en startY, en el resto comenzamos más arriba
       styles: {
-        halign: 'center', // Alinea los valores a la derecha
+        halign: 'center',
       },
       columnStyles: {
-        0: { halign: 'left', cellWidth: 25 },  // Código a la izquierda, ajustar ancho
-        1: { halign: 'left', cellWidth: 85 },  // Descripción a la izquierda, ajustar ancho
-        2: { halign: 'center', cellWidth: 10 }, // Cantidad centrada, ajustar ancho
-        3: { halign: 'right', cellWidth: 30 }, // Valor Unitario a la derecha, ajustar ancho
-        4: { halign: 'right', cellWidth: 30 }  // Total a la derecha, ajustar ancho
+        0: { halign: 'left', cellWidth: 25 },
+        1: { halign: 'left', cellWidth: 85 },
+        2: { halign: 'center', cellWidth: 10 },
+        3: { halign: 'right', cellWidth: 30 },
+        4: { halign: 'right', cellWidth: 30 }
       },
-      margin: { bottom: 40 }, // Reservar espacio para el footer
+      margin: { bottom: 40 },
     });
-} else {
-    const firstPageProducts = productos.slice(0, 20);
-    const nextPageProducts = productos.slice(20);
+  };
 
-    doc.autoTable({
-      head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
-      body: firstPageProducts,
-      startY: startY,
-      styles: {
-        halign: 'center', // Alinea los valores a la derecha
-      },
-      columnStyles: {
-        0: { halign: 'left', cellWidth: 25 },  // Código a la izquierda, ajustar ancho
-        1: { halign: 'left', cellWidth: 85},  // Descripción a la izquierda, ajustar ancho
-        2: { halign: 'center', cellWidth: 10 }, // Cantidad centrada, ajustar ancho
-        3: { halign: 'right', cellWidth: 30 }, // Valor Unitario a la derecha, ajustar ancho
-        4: { halign: 'right', cellWidth: 30 }  // Total a la derecha, ajustar ancho
-      },
-      margin: { bottom: 40 }, // Reservar espacio para el footer
-    });
+  // Generar las páginas con productos
+  let isFirstPage = true;
+  while (remainingProducts.length > 0) {
+    const itemsPerPage = isFirstPage ? itemsPerPageFirst : itemsPerPageNext;
+    const productsForPage = remainingProducts.slice(0, itemsPerPage);
+    addPageWithProducts(productsForPage, isFirstPage);
+    
+    remainingProducts = remainingProducts.slice(itemsPerPage); // Reducir el array de productos
+    isFirstPage = false;
 
-    doc.addPage();
-
-    // Segunda página con los productos restantes
-    doc.autoTable({
-      head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
-      body: nextPageProducts,
-      startY: 20,
-      styles: {
-        halign: 'center', // Alinea los valores a la derecha
-      },
-      columnStyles: {
-        0: { halign: 'left', cellWidth: 25 },  // Código a la izquierda, ajustar ancho
-        1: { halign: 'left', cellWidth: 85 },  // Descripción a la izquierda, ajustar ancho
-        2: { halign: 'center', cellWidth: 10 }, // Cantidad centrada, ajustar ancho
-        3: { halign: 'right', cellWidth: 30 }, // Valor Unitario a la derecha, ajustar ancho
-        4: { halign: 'right', cellWidth: 30 }  // Total a la derecha, ajustar ancho
-      },
-      margin: { bottom: 40 }, // Reservar espacio para el footer
-    });
-}
+    if (remainingProducts.length > 0) {
+      doc.addPage(); // Agregar nueva página si quedan productos
+    }
+  }
 
   // Asegurarse de que los valores no sean undefined antes de aplicar el formato
   const subTotal = item.subTotal !== undefined ? formatCurrency(item.subTotal) : '$0';
@@ -135,31 +113,20 @@ const generatePdf = (item) => {
     ['Total:', total],
   ];
 
-  // Añadir título de observaciones
-  const observationsTitleY = doc.internal.pageSize.getHeight() - 72; // Ajusta la posición del título de observaciones
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Observaciones:', 14, observationsTitleY);
-
-  const summaryYPosition = doc.internal.pageSize.getHeight() - 69; // Ajusta la posición de la tabla de resumen
-
-  // Crear la tabla de observaciones
-  const observationsTableData = [
-    [item.observaciones || '']
-  ];
+  const summaryYPosition = doc.internal.pageSize.getHeight() - 69;
 
   // Añadir la tabla de observaciones
   doc.autoTable({
     startY: summaryYPosition,
-    body: observationsTableData,
+    body: [[item.observaciones || '']],
     theme: 'grid',
     styles: {
       fontSize: 10,
       halign: 'left',
       cellPadding: 1,
     },
-    margin: { left: 14, right: 104 }, // Ajusta los márgenes para dar espacio horizontal
-    tableWidth: 100, // Ajusta el ancho de la tabla de observaciones
+    margin: { left: 14, right: 104 },
+    tableWidth: 100,
     tableLineColor: [0, 0, 0],
     tableLineWidth: 0.1,
   });
@@ -175,42 +142,26 @@ const generatePdf = (item) => {
       cellPadding: 1,
     },
     columnStyles: {
-      0: { halign: 'left', fontStyle: 'bold', fillColor: [240, 240, 240] }, // Alínea a la izquierda, en negrita y fondo gris claro
-      1: { halign: 'right' }, // Alínea a la derecha
+      0: { halign: 'left', fontStyle: 'bold', fillColor: [240, 240, 240] },
+      1: { halign: 'right' },
     },
-    margin: { left: 116, right: 14 }, // Ajusta los márgenes para dar espacio horizontal
+    margin: { left: 116, right: 14 },
     tableLineColor: [0, 0, 0],
     tableLineWidth: 0.1,
   });
 
-  // Añadir margen inferior al final de la página
-  doc.setDrawColor(0); // Color de borde
-  doc.setLineWidth(0.5); // Ancho de borde
-  doc.line(14, pageHeight - 20, pageWidth - 14, pageHeight - 20); // Línea de margen al final
-
-  // Añadir footer
-  const footerStartY = summaryYPosition + 28; // Posición Y del inicio del footer
+  // Añadir footer con compresión
+  const footerStartY = summaryYPosition + 28;
   const footerImageWidth = 15;
   const footerImageHeight = 15;
   const footerImageXSpacing = 8;
-  
-  const footerImageSizes = [
-    { width: footerImageWidth, height: footerImageHeight },
-    { width: footerImageWidth, height: footerImageHeight },
-    { width: footerImageWidth + 5, height: footerImageHeight + 5 }, // Agrandar imagen 3
-    { width: footerImageWidth, height: footerImageHeight },
-    { width: footerImageWidth, height: footerImageHeight },
-    { width: footerImageWidth + 5, height: footerImageHeight + 5 }, // Agrandar imagen 6
-  ];
 
   const footerImages = [footerImage1, footerImage2, footerImage3, footerImage4, footerImage5, footerImage6];
-  
   let footerImageXPosition = (pageWidth - (footerImages.length * (footerImageWidth + footerImageXSpacing))) / 2;
 
-  footerImages.forEach((image, index) => {
-    const { width, height } = footerImageSizes[index];
-    doc.addImage(image, 'PNG', footerImageXPosition, footerStartY, width, height);
-    footerImageXPosition += width + footerImageXSpacing;
+  footerImages.forEach((image) => {
+    doc.addImage(image, 'JPEG', footerImageXPosition, footerStartY, footerImageWidth, footerImageHeight, undefined, 'FAST');
+    footerImageXPosition += footerImageWidth + footerImageXSpacing;
   });
 
   // Añadir mensaje de agradecimiento

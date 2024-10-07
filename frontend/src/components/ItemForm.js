@@ -102,18 +102,28 @@ const ItemForm = ({ selectedItem, onSave }) => {
     };
   
     try {
-        let savedItem;
-        if (selectedItem) {
-            savedItem = await api.put(`/items/${selectedItem._id}`, item);
-        } else {
-            savedItem = await api.post('/items', item);
-        }
-        onSave(savedItem.data);
-    } catch (error) {
-        console.error("Error al crear o actualizar el item:", error);
-        alert("Hubo un error al crear o actualizar el item. Por favor, revisa los datos e inténtalo de nuevo.");
-    }
-  };
+      let savedItem;
+      if (selectedItem) {
+          savedItem = await api.put(`/items/${selectedItem._id}`, item);
+      } else {
+          savedItem = await api.post('/items', item);
+      }
+      onSave(savedItem.data);
+      
+      // Limpiar el formulario después de guardar
+      setAsunto('');
+      setCliente('ETIB');
+      setOtrosCliente('');
+      setProductos([{ codigo: '', descripcion: '', cantidad: 0, valor: 0, total: 0 }]);
+      setObservaciones('');
+      setSubTotal(0);
+      setIva(0);
+      setTotal(0);
+  } catch (error) {
+      console.error("Error al crear o actualizar el item:", error);
+      alert("Hubo un error al crear o actualizar el item. Por favor, revisa los datos e inténtalo de nuevo.");
+  }
+};
   
   return (
     <Container maxWidth="md">

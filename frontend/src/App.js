@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Container, Box, Typography, Button, AppBar, Toolbar, IconButton, MenuItem } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import ItemList from './components/ItemList';
 import ItemForm from './components/ItemForm';
+import Informe from './components/Informe'; // Importar el nuevo componente
 import Login from './components/Login';
-//import Register from './components/register';
-import { Container, Box, Typography, Button } from '@mui/material';
+import Register from './components/register';
 import api from './api';
 
 const App = () => {
@@ -35,10 +37,10 @@ const App = () => {
   };
 
   const handleSave = async (newItem) => {
-    if (selectedItem) {
+    if (selectedItem) { 
       setItems(items.map(item => (item._id === newItem._id ? newItem : item)));
     } else {
-      setItems([...items, newItem]);
+      setItems([newItem, ...items]);
     }
     setSelectedItem(null);
   };
@@ -60,20 +62,32 @@ const App = () => {
 
   return (
     <Router>
+      <AppBar position="static">
+        <Toolbar>
+          <IconButton edge="start" color="inherit" aria-label="menu">
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" style={{ flexGrow: 1 }}>
+            IMPD Cotizaciones
+          </Typography>
+          {isAuthenticated ? (
+            <>
+              <MenuItem component={Link} to="/">Cotizaciones</MenuItem>
+              <MenuItem component={Link} to="/informes">Informes</MenuItem> {/* Nueva ruta */}
+              <Button color="inherit" onClick={handleLogout}>Cerrar sesión</Button>
+            </>
+          ) : (
+            <Button color="inherit" component={Link} to="/login">Login</Button>
+          )}
+        </Toolbar>
+      </AppBar>
+
       <Container maxWidth="md">
         <Routes>
           <Route 
             path="/" 
             element={isAuthenticated ? (
               <Box mt={4}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Typography variant="h2" gutterBottom>
-                    IMPD Cotizaciones
-                  </Typography>
-                  <Button variant="contained" color="secondary" onClick={handleLogout}>
-                    Cerrar sesión
-                  </Button>
-                </Box>
                 <ItemForm selectedItem={selectedItem} onSave={handleSave} />
                 <ItemList items={items} onEdit={handleEdit} onDelete={handleDelete} />
               </Box>
@@ -82,6 +96,8 @@ const App = () => {
             )}
           />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/informes" element={<Informe />} /> 
         </Routes>
       </Container>
     </Router>

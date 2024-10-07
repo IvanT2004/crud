@@ -12,15 +12,22 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       await api.post('/auth/register', { name, email, password });
       setMessage('Usuario registrado exitosamente');
-      navigate('/login'); // Redirigir al login después del registro
+      navigate('/login');
     } catch (error) {
-      setMessage('Error al registrar usuario');
+      if (error.response) {
+        // Error del servidor, muestra el mensaje exacto
+        setMessage(error.response.data.message || 'Error al registrar usuario');
+      } else {
+        // Otro tipo de error (problema de red, etc.)
+        setMessage('Error de red. Verifica tu conexión.');
+      }
     }
   };
+  
 
   return (
     <Box mt={4} display="flex" flexDirection="column" alignItems="center">

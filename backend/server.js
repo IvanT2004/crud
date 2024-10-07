@@ -5,7 +5,8 @@ const path = require('path'); // Importa path para manejar las rutas
 const app = express();
 const port = 5000;
 
-const mongoUri = process.env.MONGO_URI || "mongodb://nuevoAdmin:contraseñaSegura@mongo:27017/crud?authSource=admin";
+// const mongoUri = process.env.MONGO_URI || "mongodb://nuevoAdmin:contraseñaSegura@mongo:27017/crud?authSource=admin";
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/crud';
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
