@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { TextField, Button, Container, Box, Typography, Grid } from '@mui/material';
+import { TextField, Button, Container, Box, Typography, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import generateReportPdf from '../generateReportPdf'; // Importa la función de generar PDF
 
 const TechnicalReportForm = () => {
   const [serial, setSerial] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [damageDescription, setDamageDescription] = useState('');
-  const [proposedSolution, setProposedSolution] = useState('');
-  const [observations, setObservations] = useState('');
+  const [observations, setObservations] = useState('garantia'); // Valor inicial de Observaciones
   const [images, setImages] = useState([]);
+
+  // Solución propuesta quemada
+  const proposedSolution = 'Cambiar componentes para poner parte a punto';
 
   const handleImageUpload = (e) => {
     const uploadedImages = Array.from(e.target.files);
@@ -25,8 +27,8 @@ const TechnicalReportForm = () => {
       serial,
       date,
       damageDescription,
-      proposedSolution,
-      observations,
+      proposedSolution, // Este valor ya está predefinido
+      observacion: observations, // Este será el valor de las observaciones seleccionadas
       images,
     };
 
@@ -68,24 +70,22 @@ const TechnicalReportForm = () => {
             rows={4}
             required
           />
-          <TextField
-            label="Solución Propuesta"
-            value={proposedSolution}
-            onChange={(e) => setProposedSolution(e.target.value)}
-            fullWidth
-            margin="normal"
-            multiline
-            rows={4}
-            required
-          />
-          <TextField
-            label="Observaciones"
-            value={observations}
-            onChange={(e) => setObservations(e.target.value)}
-            fullWidth
-            margin="normal"
-            multiline
-          />
+          <Typography variant="h6" style={{ marginTop: '20px' }}>
+            Solución Propuesta
+          </Typography>
+          <Typography>{proposedSolution}</Typography>
+
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Observaciones</InputLabel>
+            <Select
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+            >
+              <MenuItem value="garantia">* Garantía válida por 6 meses debido a fatiga de material.</MenuItem>
+              <MenuItem value="revision">* Revisar sistema de inyección y turbo</MenuItem>
+            </Select>
+          </FormControl>
+
           <input
             accept="image/*"
             id="image-upload"
