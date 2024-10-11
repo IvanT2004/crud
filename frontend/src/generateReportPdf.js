@@ -68,7 +68,7 @@ const generateReportPdf = (reportData) => {
   const imageWidth = 40; // Reducir el ancho de las imágenes
   const imageHeight = 30; // Reducir la altura de las imágenes
   const imageSpacingX = 10; // Espaciado entre imágenes horizontal
-  const imageSpacingY = 15; // Espaciado entre imágenes vertical
+  const imageSpacingY = 5; // Reducir el espaciado vertical para disminuir la distancia entre filas
   let imageCount = 0;
 
   reportData.images.forEach((image, index) => {
@@ -87,8 +87,7 @@ const generateReportPdf = (reportData) => {
     imageCount += 1;
 
     // Si se han añadido 6 imágenes (dos filas), pasar a la siguiente página
-    if (index > 0 && (index + 1) % 6 === 0) {
-      doc.addPage();
+    if (index > 0 && (index + 1) % 9 === 0) {
       imageX = (pageWidth - (3 * 40 + 2 * 10)) / 2;
       imageY = 190;
       imageCount = 0;

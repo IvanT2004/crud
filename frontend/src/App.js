@@ -73,7 +73,7 @@ const App = () => {
           {isAuthenticated ? (
             <>
               <MenuItem component={Link} to="/">Cotizaciones</MenuItem>
-              <MenuItem component={Link} to="/informes">Informes</MenuItem> {/* Nueva ruta */}
+              <MenuItem component={Link} to="/informes">Informes</MenuItem>
               <Button color="inherit" onClick={handleLogout}>Cerrar sesión</Button>
             </>
           ) : (
