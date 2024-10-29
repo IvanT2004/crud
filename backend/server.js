@@ -19,11 +19,14 @@ mongoose.connect(mongoUri, {
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rutas de tu API
 const itemsRouter = require('./routes/items');
 const authRouter = require('./routes/auth');
+const informesRouter = require('./routes/informes'); // Importar las rutas de informes
 
+app.use('/informes', informesRouter); // Conectar las rutas
 app.use('/items', itemsRouter);
 app.use('/auth', authRouter);
 

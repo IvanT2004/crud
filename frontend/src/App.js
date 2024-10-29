@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Container, Box, Typography, Button, AppBar, Toolbar, IconButton, MenuItem } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ItemList from './components/ItemList';
+// import InformeList from './components/InformeList'; 
 import ItemForm from './components/ItemForm';
 import Informe from './components/Informe'; // Importar el nuevo componente
 import Login from './components/Login';

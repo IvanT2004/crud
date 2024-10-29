@@ -6,3 +6,4 @@
 
 # Ignorar node_modules en el backend
 /frontend/node_modules
+/backend/uploads
