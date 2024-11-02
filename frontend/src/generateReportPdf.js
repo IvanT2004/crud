@@ -1,100 +1,137 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import logo from './Logo2.jpeg'; // Ajusta el path al logo
+import logo from './Logo2.jpeg';
 
-const generateReportPdf = (reportData) => {
+const convertImageToDataURL = async (imageUrl) => {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Error fetching the image:", error);
+    throw error;
+  }
+};
+
+const generateReportPdf = async (reportData) => {
   const doc = new jsPDF();
-
-  // Ancho de la página y del logo
   const pageWidth = doc.internal.pageSize.getWidth();
-  const logoWidth = 40;  // Hacer el logo más pequeño
-  const logoHeight = 15;
-  const logoXPosition = 10;  // Colocar el logo en la parte superior izquierda
 
-  // Añadir logo en la esquina superior izquierda
-  doc.addImage(logo, 'JPEG', logoXPosition, 10, logoWidth, logoHeight);
-
-  // Normalizar el valor de la observación para la comparación
   const observacionNormalizada = reportData.observacion?.trim().toLowerCase();
-  console.log(reportData.observacion);
-  // Verificar si la observación contiene palabras clave relevantes
-  const esReparacionMayor = observacionNormalizada.includes('revision') 
 
-  // Título dinámico basado en la observación
-  const title = esReparacionMayor ? 'REPARACIONES MAYORES' : 'PROCESO DE REPARACIONES';
-  
-  // Añadir título centrado
+  const logoWidth = 60;
+  const logoHeight = 25;
+  const logoXPosition = (pageWidth / 2) - logoWidth - 33;
+  const titleXPosition = pageWidth / 2;
+
+  // Dibuja el contenedor principal
+  const containerX = 10;
+  const containerY = 10;
+  const containerWidth = pageWidth - 20;
+  doc.setDrawColor(33, 77, 178);
+  doc.setLineWidth(0.5);
+  doc.rect(containerX, containerY, containerWidth, 273); // Ajusta la altura según el contenido
+
+  // Logo y título dentro del contenedor
+  doc.addImage(logo, 'JPEG', logoXPosition, containerY + 8, logoWidth, logoHeight);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(title, pageWidth / 2, 30, { align: 'center' });
+  doc.text('INFORME TÉCNICO', titleXPosition, containerY + 23, { align: 'center' });
 
-  // Fecha y Serial/Componente (centrado)
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Fecha: ${reportData.date}`, pageWidth / 2, 50, { align: 'center' });
-  doc.text(`Componente: ${reportData.serial}`, pageWidth / 2, 60, { align: 'center' });
-
-  // Descripción del daño (centrado)
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Descripción del Daño', pageWidth / 2, 80, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(reportData.damageDescription, pageWidth / 2, 90, { align: 'center', maxWidth: 170 });
+  // Tabla de detalles con títulos en gris claro, sin margen horizontal
+  doc.autoTable({
+    startY: containerY + 40,
+    margin: { left: containerX + 0, right: containerX + 0 }, // Ajuste a los márgenes del contenedor
+    head: [['FECHA', 'TRABAJO', 'SERIAL']],
+    body: [
+      [
+        reportData.timestamp ? new Date(reportData.timestamp).toLocaleDateString('es-CO') : '',
+        'SERVICIOS OUTSOURCING',
+        reportData.serial || ''
+      ]
+    ],
+    styles: { fontSize: 10, cellPadding: 4, halign: 'center', lineColor: [33, 77, 178], lineWidth: 0.5, textColor: [0, 0, 0] },
+    theme: 'grid',
+    headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
+    tableLineColor: [33, 77, 178],
+    tableLineWidth: 0.5
+  });
   
-  // Solución propuesta (centrado con texto quemado)
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Solución Propuesta', pageWidth / 2, 120, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text('Cambiar componentes para poner parte a punto', pageWidth / 2, 130, { align: 'center', maxWidth: 170 });//
-  
-  // Observaciones (centrado con opción seleccionada)
-  const observacion = observacionNormalizada === 'garantia' 
-    ? '* Garantía válida por 6 meses debido a fatiga de material.'
-    : '* Revisar sistema de inyeccion y turbo';
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Observaciones', pageWidth / 2, 160, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(observacion, pageWidth / 2, 170, { align: 'center', maxWidth: 170 });
-
-  // Añadir imágenes en dos filas, hasta 6 imágenes por página
-  let imageX = (pageWidth - (3 * 40 + 2 * 10)) / 2; // Centrar las imágenes en la fila
-  let imageY = 190;
-  const imageWidth = 40; // Reducir el ancho de las imágenes
-  const imageHeight = 30; // Reducir la altura de las imágenes
-  const imageSpacingX = 10; // Espaciado entre imágenes horizontal
-  const imageSpacingY = 5; // Reducir el espaciado vertical para disminuir la distancia entre filas
-  let imageCount = 0;
-
-  reportData.images.forEach((image, index) => {
-    const imgData = URL.createObjectURL(image);
-
-    // Si se han añadido 3 imágenes en una fila, saltar a la siguiente fila
-    if (imageCount === 3) {
-      imageX = (pageWidth - (3 * 40 + 2 * 10)) / 2; // Centrar las imágenes en la nueva fila
-      imageY += imageHeight + imageSpacingY;
-      imageCount = 0;
-    }
-
-    // Añadir la imagen
-    doc.addImage(imgData, 'JPEG', imageX, imageY, imageWidth, imageHeight);
-    imageX += imageWidth + imageSpacingX;
-    imageCount += 1;
-
-    // Si se han añadido 6 imágenes (dos filas), pasar a la siguiente página
-    if (index > 0 && (index + 1) % 9 === 0) {
-      imageX = (pageWidth - (3 * 40 + 2 * 10)) / 2;
-      imageY = 190;
-      imageCount = 0;
-    }
+  // Tabla de Descripción del Daño, Observaciones y Solución Propuesta, sin margen horizontal
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 10,
+    margin: { left: containerX + 0, right: containerX + 0 }, // Ajuste a los márgenes del contenedor
+    body: [
+      [{ content: 'DESCRIPCIÓN DEL DAÑO', styles: { fillColor: [220, 220, 220], fontSize: 12, fontStyle: 'bold', halign: 'center', textColor: [0, 0, 0] } }],
+      [{ content: reportData.damageDescription, styles: { fontSize: 10, halign: 'center', cellPadding: { top: 5, bottom: 5 }, textColor: [0, 0, 0] } }],
+      [{ content: 'OBSERVACIONES', styles: { fillColor: [220, 220, 220], fontSize: 12, fontStyle: 'bold', halign: 'center', textColor: [0, 0, 0] } }],
+      [{ content: observacionNormalizada === 'garantia' ? '* Garantía válida por 6 meses debido a fatiga de material.' : '* Revisar sistema de inyección y turbo', styles: { fontSize: 10, textColor: [0, 0, 0], halign: 'center', cellPadding: { top: 5, bottom: 5 } } }],
+      [{ content: 'SOLUCIÓN PROPUESTA', styles: { fillColor: [220, 220, 220], fontSize: 12, fontStyle: 'bold', halign: 'center', textColor: [0, 0, 0] } }],
+      [{ content: reportData.proposedSolution, styles: { fontSize: 10, halign: 'center', cellPadding: { top: 5, bottom: 5 }, textColor: [0, 0, 0] } }]
+    ],
+    styles: { fontSize: 10, cellPadding: 4, lineColor: [33, 77, 178], lineWidth: 0.5 },
+    theme: 'grid',
+    tableLineColor: [33, 77, 178],
+    tableLineWidth: 0.5
   });
 
-  // Guardar el PDF
+  // Registro fotográfico, ajustado al ancho del contenedor
+  const imgSectionY = doc.lastAutoTable.finalY + 20;
+  const imageWidth = 40;
+  const imageHeight = 30;
+  const imagesPerRow = 3;
+  const spacingBetweenImages = 10;
+
+  const totalImageWidth = (imageWidth * imagesPerRow) + (spacingBetweenImages * (imagesPerRow - 1));
+  const imgContainerWidth = containerWidth; // Usar containerWidth directamente
+  const imgContainerHeight = (2 * imageHeight) + 30;
+
+  const imgContainerX = (pageWidth - imgContainerWidth) / 2;
+
+  // Dibuja el recuadro alrededor del grupo de imágenes
+  doc.setDrawColor(33, 77, 178);
+  doc.setLineWidth(0.5);
+  doc.rect(imgContainerX, imgSectionY, imgContainerWidth, imgContainerHeight);
+
+  // Título del bloque de imágenes
+  doc.setFontSize(12);
+  doc.text('REGISTRO FOTOGRÁFICO DEL REPUESTO', pageWidth / 2, imgSectionY - 9, { align: 'center' });
+
+  const posXStart = imgContainerX + (imgContainerWidth - totalImageWidth) / 2;
+  let posX = posXStart;
+  let posY = imgSectionY + 10;
+
+  for (let i = 0; i < reportData.images.length; i++) {
+    try {
+      const imgData = await convertImageToDataURL(reportData.images[i]);
+      if (imgData) {
+        doc.addImage(imgData, 'JPEG', posX, posY, imageWidth, imageHeight);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text(
+          `${new Date(reportData.imageTimestamp).toLocaleString('es-CO', { timeZone: 'America/Bogota' })} - Bogotá`,
+          posX + imageWidth / 2,
+          posY + imageHeight + 5,
+          { align: 'center' }
+        );
+
+        posX += imageWidth + spacingBetweenImages;
+        if ((i + 1) % imagesPerRow === 0) {
+          posX = posXStart;
+          posY += imageHeight + 10;
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar la imagen:', error);
+    }
+  }
+
   doc.save(`informe_tecnico_${reportData.serial}.pdf`);
 };
 
