@@ -35,17 +35,17 @@ const generateReportPdf = async (reportData) => {
   const containerWidth = pageWidth - 20;
   doc.setDrawColor(33, 77, 178);
   doc.setLineWidth(0.5);
-  doc.rect(containerX, containerY, containerWidth, 273); // Ajusta la altura según el contenido
+  doc.rect(containerX, containerY, containerWidth, 270); // Ajusta la altura según el contenido
 
-  // Logo y título dentro del contenedor
-  doc.addImage(logo, 'JPEG', logoXPosition, containerY + 8, logoWidth, logoHeight);
+  // Logo y título ajustados dentro del contenedor
+  doc.addImage(logo, 'JPEG', logoXPosition, containerY + 5, logoWidth, logoHeight); // Bajé el logo ligeramente
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('INFORME TÉCNICO', titleXPosition, containerY + 23, { align: 'center' });
+  doc.text('INFORME TÉCNICO', titleXPosition, containerY + 18, { align: 'center' }); // Reduje el espacio bajo el título
 
   // Tabla de detalles con títulos en gris claro, sin margen horizontal
   doc.autoTable({
-    startY: containerY + 40,
+    startY: containerY + 30, // Ajuste después del título
     margin: { left: containerX + 0, right: containerX + 0 }, // Ajuste a los márgenes del contenedor
     head: [['FECHA', 'TRABAJO', 'SERIAL']],
     body: [
@@ -61,7 +61,7 @@ const generateReportPdf = async (reportData) => {
     tableLineColor: [33, 77, 178],
     tableLineWidth: 0.5
   });
-  
+
   // Tabla de Descripción del Daño, Observaciones y Solución Propuesta, sin margen horizontal
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 10,
@@ -80,8 +80,25 @@ const generateReportPdf = async (reportData) => {
     tableLineWidth: 0.5
   });
 
-  // Registro fotográfico, ajustado al ancho del contenedor
-  const imgSectionY = doc.lastAutoTable.finalY + 20;
+  // Título del bloque de imágenes con el mismo tamaño y estilo que los demás
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 10,
+    margin: { left: containerX + 0, right: containerX + 0 },
+    body: [
+      [
+        {
+          content: 'REGISTRO FOTOGRÁFICO DEL REPUESTO',
+          styles: { fillColor: [220, 220, 220], fontSize: 12, fontStyle: 'bold', halign: 'center', textColor: [0, 0, 0] }
+        }
+      ]
+    ],
+    styles: { fontSize: 12, textColor: [0, 0, 0] },
+    theme: 'grid',
+    tableLineColor: [33, 77, 178],
+    tableLineWidth: 0.5
+  });
+
+  const imgSectionY = doc.lastAutoTable.finalY + 8; // Ajuste para alinearse con el título
   const imageWidth = 40;
   const imageHeight = 30;
   const imagesPerRow = 3;
@@ -89,20 +106,7 @@ const generateReportPdf = async (reportData) => {
 
   const totalImageWidth = (imageWidth * imagesPerRow) + (spacingBetweenImages * (imagesPerRow - 1));
   const imgContainerWidth = containerWidth; // Usar containerWidth directamente
-  const imgContainerHeight = (2 * imageHeight) + 30;
-
-  const imgContainerX = (pageWidth - imgContainerWidth) / 2;
-
-  // Dibuja el recuadro alrededor del grupo de imágenes
-  doc.setDrawColor(33, 77, 178);
-  doc.setLineWidth(0.5);
-  doc.rect(imgContainerX, imgSectionY, imgContainerWidth, imgContainerHeight);
-
-  // Título del bloque de imágenes
-  doc.setFontSize(12);
-  doc.text('REGISTRO FOTOGRÁFICO DEL REPUESTO', pageWidth / 2, imgSectionY - 9, { align: 'center' });
-
-  const posXStart = imgContainerX + (imgContainerWidth - totalImageWidth) / 2;
+  const posXStart = containerX + (imgContainerWidth - totalImageWidth) / 2;
   let posX = posXStart;
   let posY = imgSectionY + 10;
 

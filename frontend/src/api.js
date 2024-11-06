@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000', // Cambia localhost por el nombre del servicio backend
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000', // Cambia según el entorno
 });
+
 
 api.interceptors.request.use(request => {
   const token = localStorage.getItem('token');
