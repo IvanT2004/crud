@@ -4,7 +4,18 @@ import logo from './Logo2.jpeg';
 
 const convertImageToDataURL = async (imageUrl) => {
   try {
+    // Aseguramos que la URL sea válida antes de intentar cargarla
+    if (!imageUrl.startsWith('http')) {
+      console.error(`Invalid image URL: ${imageUrl}`);
+      throw new Error('Invalid image URL');
+    }
+
     const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error(`Failed to fetch image at ${imageUrl}`);
+      throw new Error('Failed to fetch image');
+    }
+
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -13,12 +24,20 @@ const convertImageToDataURL = async (imageUrl) => {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error("Error fetching the image:", error);
-    throw error;
+    console.error('Error fetching the image:', error);
+    return null; // Devolver null en caso de error
   }
 };
 
 const generateReportPdf = async (reportData) => {
+  
+  reportData.images = reportData.images.map((img) => {
+    if (!img.startsWith('https')) {
+      return `${process.env.REACT_APP_API_URL || 'https://185.173.110.165'}/${img}`;
+    }
+    return img;
+  });
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -35,18 +54,18 @@ const generateReportPdf = async (reportData) => {
   const containerWidth = pageWidth - 20;
   doc.setDrawColor(33, 77, 178);
   doc.setLineWidth(0.5);
-  doc.rect(containerX, containerY, containerWidth, 270); // Ajusta la altura según el contenido
+  doc.rect(containerX, containerY, containerWidth, 270);
 
   // Logo y título ajustados dentro del contenedor
-  doc.addImage(logo, 'JPEG', logoXPosition, containerY + 5, logoWidth, logoHeight); // Bajé el logo ligeramente
+  doc.addImage(logo, 'JPEG', logoXPosition, containerY + 5, logoWidth, logoHeight);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('INFORME TÉCNICO', titleXPosition, containerY + 18, { align: 'center' }); // Reduje el espacio bajo el título
+  doc.text('INFORME TÉCNICO', titleXPosition, containerY + 18, { align: 'center' });
 
-  // Tabla de detalles con títulos en gris claro, sin margen horizontal
+  // Tabla de detalles con títulos en gris claro
   doc.autoTable({
-    startY: containerY + 30, // Ajuste después del título
-    margin: { left: containerX + 0, right: containerX + 0 }, // Ajuste a los márgenes del contenedor
+    startY: containerY + 30,
+    margin: { left: containerX + 0, right: containerX + 0 },
     head: [['FECHA', 'TRABAJO', 'SERIAL']],
     body: [
       [
@@ -62,10 +81,10 @@ const generateReportPdf = async (reportData) => {
     tableLineWidth: 0.5
   });
 
-  // Tabla de Descripción del Daño, Observaciones y Solución Propuesta, sin margen horizontal
+  // Tabla de Descripción del Daño, Observaciones y Solución Propuesta
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 10,
-    margin: { left: containerX + 0, right: containerX + 0 }, // Ajuste a los márgenes del contenedor
+    margin: { left: containerX + 0, right: containerX + 0 },
     body: [
       [{ content: 'DESCRIPCIÓN DEL DAÑO', styles: { fillColor: [220, 220, 220], fontSize: 12, fontStyle: 'bold', halign: 'center', textColor: [0, 0, 0] } }],
       [{ content: reportData.damageDescription, styles: { fontSize: 10, halign: 'center', cellPadding: { top: 5, bottom: 5 }, textColor: [0, 0, 0] } }],
@@ -80,7 +99,7 @@ const generateReportPdf = async (reportData) => {
     tableLineWidth: 0.5
   });
 
-  // Título del bloque de imágenes con el mismo tamaño y estilo que los demás
+  // Título del bloque de imágenes
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 10,
     margin: { left: containerX + 0, right: containerX + 0 },
@@ -98,14 +117,14 @@ const generateReportPdf = async (reportData) => {
     tableLineWidth: 0.5
   });
 
-  const imgSectionY = doc.lastAutoTable.finalY + 8; // Ajuste para alinearse con el título
+  const imgSectionY = doc.lastAutoTable.finalY + 8;
   const imageWidth = 40;
   const imageHeight = 30;
   const imagesPerRow = 3;
   const spacingBetweenImages = 10;
 
   const totalImageWidth = (imageWidth * imagesPerRow) + (spacingBetweenImages * (imagesPerRow - 1));
-  const imgContainerWidth = containerWidth; // Usar containerWidth directamente
+  const imgContainerWidth = containerWidth;
   const posXStart = containerX + (imgContainerWidth - totalImageWidth) / 2;
   let posX = posXStart;
   let posY = imgSectionY + 10;
@@ -115,26 +134,25 @@ const generateReportPdf = async (reportData) => {
       const imgData = await convertImageToDataURL(reportData.images[i]);
       if (imgData) {
         doc.addImage(imgData, 'JPEG', posX, posY, imageWidth, imageHeight);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
         doc.text(
           `${new Date(reportData.imageTimestamp).toLocaleString('es-CO', { timeZone: 'America/Bogota' })} - Bogotá`,
           posX + imageWidth / 2,
           posY + imageHeight + 5,
           { align: 'center' }
         );
-
+  
         posX += imageWidth + spacingBetweenImages;
         if ((i + 1) % imagesPerRow === 0) {
           posX = posXStart;
           posY += imageHeight + 10;
         }
+      } else {
+        console.warn(`Image at index ${i} could not be loaded: ${reportData.images[i]}`);
       }
     } catch (error) {
-      console.error('Error al cargar la imagen:', error);
+      console.error(`Error loading image at index ${i}: ${reportData.images[i]}`, error);
     }
-  }
+  }  
 
   doc.save(`informe_tecnico_${reportData.serial}.pdf`);
 };
