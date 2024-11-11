@@ -4,6 +4,8 @@ services:
     build: ./backend
     depends_on:
       - mongo
+    volumes:
+      - ./backend/uploads:/usr/src/app/uploads
     environment:
       - NODE_ENV=production
     networks:

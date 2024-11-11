@@ -4,18 +4,12 @@ import logo from './Logo2.jpeg';
 
 const convertImageToDataURL = async (imageUrl) => {
   try {
-    // Aseguramos que la URL sea válida antes de intentar cargarla
-    if (!imageUrl.startsWith('http')) {
-      console.error(`Invalid image URL: ${imageUrl}`);
-      throw new Error('Invalid image URL');
-    }
-
+    console.log(`Fetching image: ${imageUrl}`);
     const response = await fetch(imageUrl);
     if (!response.ok) {
-      console.error(`Failed to fetch image at ${imageUrl}`);
-      throw new Error('Failed to fetch image');
+      console.error(`Failed to fetch image. Status: ${response.status} - ${response.statusText}`);
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
-
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -32,11 +26,14 @@ const convertImageToDataURL = async (imageUrl) => {
 const generateReportPdf = async (reportData) => {
   
   reportData.images = reportData.images.map((img) => {
-    if (!img.startsWith('https')) {
-      return `${process.env.REACT_APP_API_URL || 'https://185.173.110.165'}/${img}`;
+    if (!img.startsWith('http')) {
+      const normalizedPath = img.startsWith('uploads/') ? img : `uploads/${img}`;
+      return `${process.env.REACT_APP_API_URL || 'http://backend:5000'}/${normalizedPath}`;
     }
     return img;
-  });
+  });  
+
+  console.log('Generated Image URLs:', reportData.images);
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();

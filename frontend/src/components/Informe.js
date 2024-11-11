@@ -108,7 +108,7 @@ const TechnicalReportForm = () => {
   
     if (editingId) {
       const filteredImagesToKeep = imagesToKeep.map((img) =>
-        img.startsWith('http') ? img : `${process.env.SERVER_BASE_URL || 'https://backend:5000'}/${img}`
+        img.startsWith('http') ? img : `${process.env.SERVER_BASE_URL || 'http://backend:5000'}/${img}`
       );
   
       formData.append('imagesToKeep', JSON.stringify(filteredImagesToKeep));

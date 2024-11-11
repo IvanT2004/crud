@@ -10,7 +10,7 @@ const upload = require('../middleware/upload');
 router.get('/', auth, async (req, res) => {
   try {
     const informes = await Informe.find();
-    const baseURL = process.env.SERVER_BASE_URL || `https://${req.headers.host}`;
+    const baseURL = process.env.SERVER_BASE_URL || `http://backend:5000`;
     informes.forEach(informe => {
       informe.images = informe.images.map(imagePath =>
         imagePath.startsWith('http') ? imagePath : `${baseURL}/${imagePath}`
@@ -59,7 +59,7 @@ router.put('/:id', auth, upload.array('images', 6), async (req, res) => {
     const imagesToDelete = informe.images.filter((imgPath) => !imagesToKeep.includes(`${process.env.SERVER_BASE_URL || 'http://backend:5000'}/${imgPath}`));
 
     imagesToDelete.forEach((imgPath) => {
-      const filePath = path.join(__dirname, '..', imgPath.replace(`${process.env.SERVER_BASE_URL || 'https://backend:5000'}/`, ''));
+      const filePath = path.join(__dirname, '..', imgPath.replace(`${process.env.SERVER_BASE_URL || 'http://backend:5000'}/`, ''));
       fs.unlink(filePath, (err) => {
         if (err) console.error(`Error eliminando la imagen ${filePath}:`, err);
       });
