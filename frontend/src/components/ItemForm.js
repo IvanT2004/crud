@@ -38,25 +38,45 @@ const ItemForm = ({ selectedItem, onSave }) => {
     }
   }, [selectedItem]);
   const formatNumberInput = (value) => {
-    return new Intl.NumberFormat('es-CO').format(value);
+    if (!value) return '';
+    const numericValue = Number(value.toString().replace(/\D/g, '')); // Remueve caracteres no numéricos
+    return new Intl.NumberFormat('es-CO').format(numericValue); // Formatea como número colombiano
   };
-
+  
   const parseFormattedNumber = (value) => {
-    return Number(value.replace(/\./g, ''));
+    if (!value) return 0;
+    return Number(value.toString().replace(/\./g, '')); // Convierte de formato es-CO a número
   };
-
+  
   const handleProductChange = (index, field, value) => {
-    const formattedValue = field === 'cantidad' || field === 'valor' ? parseFormattedNumber(value) : value;
+    let updatedValue;
+  
+    if (field === 'cantidad' || field === 'valor') {
+      // Validar y formatear valores numéricos
+      const numericValue = value.replace(/\D/g, ''); // Remover caracteres no numéricos
+      if (numericValue.length > 9) return; // Limitar a 9 dígitos
+      updatedValue = parseFormattedNumber(numericValue); // Convertir a número
+    } else {
+      // Aceptar directamente texto para otros campos
+      updatedValue = value;
+    }
+  
+    // Crear una copia de los productos con el cambio aplicado
     const newProductos = productos.map((producto, i) => {
       if (i === index) {
-        const updatedProducto = { ...producto, [field]: formattedValue };
+        const updatedProducto = { ...producto, [field]: updatedValue };
+  
+        // Actualizar el total si se cambian 'cantidad' o 'valor'
         if (field === 'cantidad' || field === 'valor') {
-          updatedProducto.total = parseFloat(updatedProducto.cantidad || 0) * parseFloat(updatedProducto.valor || 0);
+          updatedProducto.total =
+            parseFloat(updatedProducto.cantidad || 0) *
+            parseFloat(updatedProducto.valor || 0);
         }
         return updatedProducto;
       }
       return producto;
     });
+    // Actualizar el estado y calcular totales
     setProductos(newProductos);
     calcularTotales(newProductos);
   };
@@ -74,54 +94,58 @@ const ItemForm = ({ selectedItem, onSave }) => {
     setTotal(subTotalCalculado + ivaCalculado);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    // Validación básica antes de enviar
-    if (!asunto.trim()) {
-        alert("El campo Asunto es obligatorio");
-        return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  // Validación básica antes de enviar
+  if (!asunto.trim()) {
+    alert('El campo Asunto es obligatorio');
+    return;
+  }
+
+  // Filtrar los productos para incluir solo aquellos que tienen una descripción
+  const filteredProductos = productos.filter((producto) =>
+    producto.descripcion.trim()
+  );
+
+  if (filteredProductos.length === 0) {
+    alert('Debe haber al menos un producto con una descripción válida.');
+    return;
+  }
+
+  const item = {
+    asunto,
+    cliente: cliente === 'Otros' ? otrosCliente : cliente,
+    productos: filteredProductos, // Usar solo los productos filtrados
+    subTotal,
+    iva,
+    total,
+    observaciones,
+  };
+
+  try {
+    let savedItem;
+    if (selectedItem) {
+      savedItem = await api.put(`/items/${selectedItem._id}`, item); // URL relativa
+    } else {
+      savedItem = await api.post('/items', item); // URL relativa
     }
-  
-    // Filtrar los productos para incluir solo aquellos que tienen una descripción
-    const filteredProductos = productos.filter(producto => producto.descripcion.trim());
-  
-    if (filteredProductos.length === 0) {
-        alert("Debe haber al menos un producto con una descripción válida.");
-        return;
-    }
-  
-    const item = {
-        asunto,
-        cliente: cliente === 'Otros' ? otrosCliente : cliente,
-        productos: filteredProductos, // Usar solo los productos filtrados
-        subTotal,
-        iva,
-        total,
-        observaciones
-    };
-  
-    try {
-      let savedItem;
-      if (selectedItem) {
-          savedItem = await api.put(`/items/${selectedItem._id}`, item);
-      } else {
-          savedItem = await api.post('/items', item);
-      }
-      onSave(savedItem.data);
-      
-      // Limpiar el formulario después de guardar
-      setAsunto('');
-      setCliente('ETIB');
-      setOtrosCliente('');
-      setProductos([{ codigo: '', descripcion: '', cantidad: 0, valor: 0, total: 0 }]);
-      setObservaciones('');
-      setSubTotal(0);
-      setIva(0);
-      setTotal(0);
+    onSave(savedItem.data);
+
+    // Limpiar el formulario después de guardar
+    setAsunto('');
+    setCliente('ETIB');
+    setOtrosCliente('');
+    setProductos([{ codigo: '', descripcion: '', cantidad: 0, valor: 0, total: 0 }]);
+    setObservaciones('');
+    setSubTotal(0);
+    setIva(0);
+    setTotal(0);
   } catch (error) {
-      console.error("Error al crear o actualizar el item:", error);
-      alert("Hubo un error al crear o actualizar el item. Por favor, revisa los datos e inténtalo de nuevo.");
+    console.error('Error al crear o actualizar el item:', error);
+    alert(
+      'Hubo un error al crear o actualizar el item. Por favor, revisa los datos e inténtalo de nuevo.'
+    );
   }
 };
   
@@ -162,39 +186,43 @@ const ItemForm = ({ selectedItem, onSave }) => {
             {productos.map((producto, index) => (
               <div className="product-row" key={index}>
                 <TextField
-                  label="Codigo"
-                  value={producto.codigo}
-                  onChange={(e) => handleProductChange(index, 'codigo', e.target.value)}
-                  className="product-field"
-                />
-                <TextField
-                  label="Descripción"
-                  value={producto.descripcion}
-                  onChange={(e) => handleProductChange(index, 'descripcion', e.target.value)}
-                  className="product-field"
-                />
-                <TextField
-                  label="Cantidad"
-                  type="text"
-                  value={formatNumberInput(producto.cantidad)}
-                  onChange={(e) => handleProductChange(index, 'cantidad', e.target.value)}
-                  className="product-field"
-                />
-                <TextField
-                  label="Valor"
-                  type="text"
-                  value={formatNumberInput(producto.valor)}
-                  onChange={(e) => handleProductChange(index, 'valor', e.target.value)}
-                  className="product-field"
-                />
-                <TextField
-                  label="Valor Total"
-                  value={formatNumberInput(producto.total.toFixed(0))}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                  className="product-field"
-                />
+                label="Codigo"
+                type="text"
+                value={producto.codigo}
+                onChange={(e) => handleProductChange(index, 'codigo', e.target.value)}
+                className="product-field"
+              />
+              <TextField
+                label="Descripción"
+                type="text"
+                value={producto.descripcion}
+                onChange={(e) => handleProductChange(index, 'descripcion', e.target.value)}
+                className="product-field"
+              />
+              <TextField
+                label="Cantidad"
+                type="text"
+                value={formatNumberInput(producto.cantidad)}
+                onChange={(e) => handleProductChange(index, 'cantidad', e.target.value)}
+                className="product-field"
+                inputProps={{ maxLength: 11 }}
+              />
+              <TextField
+                label="Valor"
+                type="text"
+                value={formatNumberInput(producto.valor)}
+                onChange={(e) => handleProductChange(index, 'valor', e.target.value)}
+                className="product-field"
+                inputProps={{ maxLength: 11 }}
+              />
+              <TextField
+                label="Valor Total"
+                value={formatNumberInput(producto.total.toFixed(0))}
+                InputProps={{
+                  readOnly: true,
+                }}
+                className="product-field"
+              />
               </div>
             ))}
           </div>

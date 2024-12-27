@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import logo from './Logo2.jpeg'; // Ajusta el path al logo
-import footerImage1 from './febi.png'; // Ajusta el path a las imágenes
+import footerImage1 from './febi.png';
 import footerImage2 from './Federal.jpg';
 import footerImage3 from './sachs.png';
 import footerImage4 from './valeo.png';
@@ -13,6 +13,7 @@ const generatePdf = (item) => {
 
   // Ancho de la página y del logo
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const logoWidth = 100;
   const logoHeight = 40;
   const logoXPosition = (pageWidth - logoWidth) / 2;
@@ -52,6 +53,29 @@ const generatePdf = (item) => {
     }).format(value);
   };
 
+  // Función para añadir el pie de página
+  const addFooter = (doc, pageWidth, pageHeight) => {
+    const footerStartY = pageHeight - 40; 
+    const footerImageWidth = 15;
+    const footerImageHeight = 15;
+    const footerImageXSpacing = 8;
+
+    const footerImages = [footerImage1, footerImage2, footerImage3, footerImage4, footerImage5, footerImage6];
+    let footerImageXPosition = (pageWidth - (footerImages.length * (footerImageWidth + footerImageXSpacing))) / 2;
+
+    // Añadir imágenes del pie de página
+    footerImages.forEach((image) => {
+      doc.addImage(image, 'JPEG', footerImageXPosition, footerStartY, footerImageWidth, footerImageHeight, undefined, 'FAST');
+      footerImageXPosition += footerImageWidth + footerImageXSpacing;
+    });
+
+    // Añadir mensaje de agradecimiento
+    const messageYPosition = footerStartY + footerImageHeight + 10;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('¡Gracias por confiar en nosotros!', pageWidth / 2, messageYPosition, { align: 'center' });
+  };
+
   // Añadir tabla de productos
   const productos = item.productos.map(p => [
     p.codigo || '',
@@ -62,42 +86,39 @@ const generatePdf = (item) => {
   ]);
 
   let startY = 80;
-  const itemsPerPageFirst = 20; // Ajuste para primera página
-  const itemsPerPageNext = 25;  // Ajuste para páginas siguientes
+  const itemsPerPageFirst = 17; // Ajuste para primera página
+  const itemsPerPageNext = 17;  // Ajuste para páginas siguientes
   let remainingProducts = productos;
-
-  // Función para añadir una página con productos
-  const addPageWithProducts = (productsToDisplay, isFirstPage = false) => {
-    doc.autoTable({
-      head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
-      body: productsToDisplay,
-      startY: isFirstPage ? startY : 10, // En la primera página comenzamos en startY, en el resto comenzamos más arriba
-      styles: {
-        halign: 'center',
-      },
-      columnStyles: {
-        0: { halign: 'left', cellWidth: 25 },
-        1: { halign: 'left', cellWidth: 85 },
-        2: { halign: 'center', cellWidth: 10 },
-        3: { halign: 'right', cellWidth: 30 },
-        4: { halign: 'right', cellWidth: 30 }
-      },
-      margin: { bottom: 40 },
-    });
-  };
 
   // Generar las páginas con productos
   let isFirstPage = true;
   while (remainingProducts.length > 0) {
     const itemsPerPage = isFirstPage ? itemsPerPageFirst : itemsPerPageNext;
     const productsForPage = remainingProducts.slice(0, itemsPerPage);
-    addPageWithProducts(productsForPage, isFirstPage);
-    
-    remainingProducts = remainingProducts.slice(itemsPerPage); // Reducir el array de productos
+
+    doc.autoTable({
+      head: [['Código', 'Descripción', 'Q', 'Valor Unitario', 'Total']],
+      body: productsForPage,
+      startY: isFirstPage ? startY : 10,
+      styles: { halign: 'center' },
+      columnStyles: {
+        0: { halign: 'left', cellWidth: 25 },
+        1: { halign: 'left', cellWidth: 85 },
+        2: { halign: 'center', cellWidth: 10 },
+        3: { halign: 'right', cellWidth: 30 },
+        4: { halign: 'right', cellWidth: 30 },
+      },
+      margin: { bottom: 40 },
+      didDrawPage: (data) => {
+        addFooter(doc, pageWidth, pageHeight); // Añadir pie de página en cada página
+      },
+    });
+
+    remainingProducts = remainingProducts.slice(itemsPerPage);
     isFirstPage = false;
 
     if (remainingProducts.length > 0) {
-      doc.addPage(); // Agregar nueva página si quedan productos
+      doc.addPage();
     }
   }
 
@@ -106,18 +127,18 @@ const generatePdf = (item) => {
   const iva = item.iva !== undefined ? formatCurrency(item.iva, 0) : '$0';
   const total = item.total !== undefined ? formatCurrency(item.total, 0) : '$0';
 
-  // Crear la tabla de resumen (Subtotal, IVA, Total)
+  // Crear la tabla de resumen (Subtotal, IVA, Total) en la última página
   const summaryTableData = [
     ['Subtotal:', subTotal],
     ['IVA (19%):', iva],
     ['Total:', total],
   ];
 
-  const summaryYPosition = doc.internal.pageSize.getHeight() - 69;
+  const summaryYPosition = pageHeight - 75; // Ajustar la posición para que el recuadro no se superponga
 
-  // Añadir la tabla de observaciones
+  // Añadir tabla de observaciones dinámica
   doc.autoTable({
-    startY: summaryYPosition,
+    startY: summaryYPosition , // Posición para la tabla de observaciones
     body: [[item.observaciones || '']],
     theme: 'grid',
     styles: {
@@ -131,7 +152,7 @@ const generatePdf = (item) => {
     tableLineWidth: 0.1,
   });
 
-  // Añadir la tabla de resumen
+  // Crear la tabla de resumen
   doc.autoTable({
     startY: summaryYPosition,
     body: summaryTableData,
@@ -150,25 +171,8 @@ const generatePdf = (item) => {
     tableLineWidth: 0.1,
   });
 
-  // Añadir footer con compresión
-  const footerStartY = summaryYPosition + 28;
-  const footerImageWidth = 15;
-  const footerImageHeight = 15;
-  const footerImageXSpacing = 8;
-
-  const footerImages = [footerImage1, footerImage2, footerImage3, footerImage4, footerImage5, footerImage6];
-  let footerImageXPosition = (pageWidth - (footerImages.length * (footerImageWidth + footerImageXSpacing))) / 2;
-
-  footerImages.forEach((image) => {
-    doc.addImage(image, 'JPEG', footerImageXPosition, footerStartY, footerImageWidth, footerImageHeight, undefined, 'FAST');
-    footerImageXPosition += footerImageWidth + footerImageXSpacing;
-  });
-
-  // Añadir mensaje de agradecimiento
-  const messageYPosition = footerStartY + footerImageHeight + 15;
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('¡Gracias por confiar en nosotros!', pageWidth / 2, messageYPosition, { align: 'center' });
+  // Añadir pie de página en la última página
+  addFooter(doc, pageWidth, pageHeight);
 
   // Guardar el PDF
   doc.save(`cotizacion_${formattedId}.pdf`);
